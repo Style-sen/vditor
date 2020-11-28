@@ -36,7 +36,7 @@ export const getSelectionInfo = (editor: HTMLElement)=> {
     const range = selection.getRangeAt(0);
     const parentRect = editor.parentElement.getBoundingClientRect();
     // 获取endContainer和endOffset的值
-    let cursorRect = range.getClientRects()[0];
+    let cursorRect = range.getClientRects()[0] || parentRect;
     return {
         rangeEndContainer: range.endContainer,
         rangeEndOffset: range.endOffset,
