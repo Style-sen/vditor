@@ -17,6 +17,25 @@ export const getEditorRange = (element: HTMLElement) => {
     return range;
 };
 
+export const getSelectionInfo = (editor: HTMLElement) => {
+    const selection = window.getSelection();
+    if(selection.rangeCount === 0){
+        return {};
+    }
+    const range = selection.getRangeAt(0);
+    const parentRect = editor.parentElement.getBoundingClientRect();
+    // 获取endContainer和endOffset的值
+    let cursorRect = range.getClientRects()[0];
+    return {
+        rangeEndContainer: range.endContainer,
+        rangeEndOffset: range.endOffset,
+        rangeEndContainerPositon: {
+            left: cursorRect.left - parentRect.left,
+            top: cursorRect.top - parentRect.top,
+        }
+    }
+}
+
 export const getCursorPosition = (editor: HTMLElement) => {
     const range = window.getSelection().getRangeAt(0);
     if (!editor.contains(range.startContainer) && !hasClosestByClassName(range.startContainer, "vditor-panel--none")) {
