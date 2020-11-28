@@ -30,7 +30,7 @@ import {addScript, addScriptSync} from "./ts/util/addScript";
 import {getSelectText} from "./ts/util/getSelectText";
 import {Options} from "./ts/util/Options";
 import {processCodeRender} from "./ts/util/processCode";
-import {getCursorPosition, getEditorRange, getSelectionInfo} from "./ts/util/selection";
+import {getCursorPosition, getEditorRange, getSelectionInfo, setSelectionByOldinfo,selectionOldInfo} from "./ts/util/selection";
 import {WYSIWYG} from "./ts/wysiwyg";
 import {afterRenderEvent} from "./ts/wysiwyg/afterRenderEvent";
 import {input} from "./ts/wysiwyg/input";
@@ -222,6 +222,10 @@ class Vditor extends VditorMethod {
     public getSelectionInfo() {
         return getSelectionInfo(this.vditor[this.vditor.currentMode].element);
     }
+    public setSelectionByOldinfo(oldSelectionInfo:selectionOldInfo) {
+        return setSelectionByOldinfo(this.vditor[this.vditor.currentMode].element, oldSelectionInfo);
+    }
+
     /** 上传是否还在进行中 */
     public isUploading() {
         return this.vditor.upload.isUploading;

@@ -17,7 +17,18 @@ export const getEditorRange = (element: HTMLElement) => {
     return range;
 };
 
-export const getSelectionInfo = (editor: HTMLElement) => {
+interface selectionPosition {
+    left: number,
+    top: number
+}
+
+export interface selectionOldInfo  {
+    rangeEndContainer: Node,
+    rangeEndOffset: number,
+    rangeEndContainerPositon:selectionPosition
+}
+
+export const getSelectionInfo = (editor: HTMLElement)=> {
     const selection = window.getSelection();
     if(selection.rangeCount === 0){
         return {};
@@ -33,6 +44,27 @@ export const getSelectionInfo = (editor: HTMLElement) => {
             left: cursorRect.left - parentRect.left,
             top: cursorRect.top - parentRect.top,
         }
+    }
+}
+
+export const setSelectionByOldinfo = (editor: HTMLElement, oldInfo:selectionOldInfo)=>{
+    //优先级：父子都相同》父相同》子相同
+    // 首先判断parentElement内容是否相同
+    // 然后再同步判断node是否相同，遇到父子都相同的
+    var newRange = document.createRange();
+    if(editor.childElementCount > 0){
+        editor.childNodes.forEach((sonNode)=>{
+            if(sonNode.textContent === oldInfo.rangeEndContainer.parentElement.textContent){
+                sonNode.childNodes.forEach((grandSonNode)=>{
+                    if(grandSonNode.textContent === oldInfo.rangeEndContainer.textContent){
+                        newRange.setStart(grandSonNode,oldInfo.rangeEndOffset);
+                        newRange.collapse(true);
+                        setSelectionFocus(newRange);
+                        return;
+                    }
+                })
+            }
+        })
     }
 }
 
