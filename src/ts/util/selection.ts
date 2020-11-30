@@ -53,6 +53,11 @@ export const setSelectionByOldinfo = (editor: HTMLElement, oldInfo:selectionOldI
     // 然后再同步判断node是否相同，遇到父子都相同的
     var newRange = document.createRange();
     const newRangePriority: Range|unknown[] = [];
+    // positon
+    const parentRect = editor.parentElement.getBoundingClientRect();
+    var oldDistance = oldInfo.rangeEndContainerPositon.top * parentRect.width + oldInfo.rangeEndContainerPositon.left;
+    var sonDistance = 0;
+    var noneDistance = 0;
     if(editor.childElementCount > 0){
         editor.childNodes.forEach((sonNode)=>{
             if(sonNode.textContent === oldInfo.rangeEndContainer.parentElement.textContent){
@@ -73,6 +78,22 @@ export const setSelectionByOldinfo = (editor: HTMLElement, oldInfo:selectionOldI
                     if( index > -1){
                         newRange.setStart(grandSonNode, oldInfo.rangeEndOffset + index);
                         newRangePriority[2] = newRange;
+                    }
+                })
+            }
+            else{// 父不包含，子包含
+                sonNode.childNodes.forEach((grandSonNode) => {
+                    const index =  grandSonNode.textContent.indexOf(oldInfo.rangeEndContainer.textContent);
+                    const currentParentLocation = grandSonNode.parentElement.getBoundingClientRect();
+                    const currentDistance = (currentParentLocation.top - parentRect.top)*parentRect.width + (currentParentLocation.left - parentRect.left);
+                    if( index > -1 && currentDistance <= oldDistance && currentDistance> sonDistance){
+                        newRange.setStart(grandSonNode, oldInfo.rangeEndOffset + index);
+                        newRangePriority[3] = newRange;
+                        sonDistance = currentDistance;
+                    }else if(currentDistance <= oldDistance && currentDistance> noneDistance){ // 父不包含，子也不包含,比较距离
+                        newRange.setStart(grandSonNode, grandSonNode.textContent.length);
+                        newRangePriority[4] = newRange;
+                        noneDistance = currentDistance;
                     }
                 })
             }
