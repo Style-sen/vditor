@@ -52,19 +52,38 @@ export const setSelectionByOldinfo = (editor: HTMLElement, oldInfo:selectionOldI
     // 首先判断parentElement内容是否相同
     // 然后再同步判断node是否相同，遇到父子都相同的
     var newRange = document.createRange();
+    const newRangePriority: Range|unknown[] = [];
     if(editor.childElementCount > 0){
         editor.childNodes.forEach((sonNode)=>{
             if(sonNode.textContent === oldInfo.rangeEndContainer.parentElement.textContent){
                 sonNode.childNodes.forEach((grandSonNode)=>{
+                    const index =  grandSonNode.textContent.indexOf(oldInfo.rangeEndContainer.textContent);
                     if(grandSonNode.textContent === oldInfo.rangeEndContainer.textContent){
                         newRange.setStart(grandSonNode,oldInfo.rangeEndOffset);
-                        newRange.collapse(true);
-                        setSelectionFocus(newRange);
-                        return;
+                        newRangePriority[0] = newRange;
+                    }else if(index>-1){
+                        newRange.setStart(grandSonNode, oldInfo.rangeEndOffset + index);
+                        newRangePriority[1] = newRange;
+                    }
+                })
+            }
+            else if(sonNode.textContent.indexOf(oldInfo.rangeEndContainer.parentElement.textContent)>-1){
+                sonNode.childNodes.forEach((grandSonNode) => {
+                    const index =  grandSonNode.textContent.indexOf(oldInfo.rangeEndContainer.textContent);
+                    if( index > -1){
+                        newRange.setStart(grandSonNode, oldInfo.rangeEndOffset + index);
+                        newRangePriority[2] = newRange;
                     }
                 })
             }
         })
+    }
+    for(const NR of newRangePriority){
+        if(NR instanceof Range){
+            NR.collapse(true);
+            setSelectionFocus(NR);
+            return;
+        }
     }
 }
 
