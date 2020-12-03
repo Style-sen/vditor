@@ -130,17 +130,20 @@ const parseSonNode = (grandSonNode: Node,
                 sonDistance = currentDistance;
             }else {
                 // diff假设只修改一处地方
-                const diffdata = tmp.diff_main( oldInfo.rangeEndContainer.textContent.slice(0,oldInfo.rangeEndOffset), grandSonNode.textContent,true);
+                const diffdata = tmp.diff_main( oldInfo.rangeEndContainer.textContent, grandSonNode.textContent,true);
                 //console.log(diffdata);
                 //比较相同的地方
                 let currentEqualCharsSum = 0;
-                let offset = oldInfo.rangeEndOffset;
+                let leaveNumber = oldInfo.rangeEndOffset;
+                let offset = 0;
                 diffdata.forEach((df,index) => {
-                    if(df[0] === 0){
+                    if(df[0] === 0 && leaveNumber > 0){
                         currentEqualCharsSum += df[1].length;
-                    }else if(df[0] === -1){
-                        offset -= df[1].length;
-                    }else if(df[0] === 1 && index < diffdata.length-1){
+                        offset += Math.min(leaveNumber,df[1].length);
+                        leaveNumber -= df[1].length;
+                    }else if(df[0] === -1 && leaveNumber > 0){
+                        leaveNumber -= df[1].length;
+                    }else if(df[0] === 1 && leaveNumber > 0){
                         offset += df[1].length;
                     }
                     console.log(df, offset);
