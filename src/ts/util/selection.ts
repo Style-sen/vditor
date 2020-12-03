@@ -1,6 +1,7 @@
 import {Constants} from "../constants";
 import {isChrome} from "./compatibility";
 import {hasClosestBlock, hasClosestByClassName} from "./hasClosest";
+import {diff_match_patch} from "diff-match-patch";
 
 export const getEditorRange = (element: HTMLElement) => {
     let range: Range;
@@ -58,7 +59,9 @@ export const setSelectionByOldinfo = (editor: HTMLElement, oldInfo:selectionOldI
     var oldDistance = oldInfo.rangeEndContainerPositon.top * parentRect.width + oldInfo.rangeEndContainerPositon.left;
     var sonDistance = 0;
     var noneDistance = 0;
+    var equalCharsSum = 0;
     if(editor.childElementCount > 0){
+        var tmp:diff_match_patch = new diff_match_patch();
         editor.childNodes.forEach((sonNode)=>{
             if(sonNode.textContent === oldInfo.rangeEndContainer.parentElement.textContent){
                 sonNode.childNodes.forEach((grandSonNode)=>{
@@ -81,6 +84,15 @@ export const setSelectionByOldinfo = (editor: HTMLElement, oldInfo:selectionOldI
                     }
                 })
             }
+            else if(sonNode.textContent.indexOf(oldInfo.rangeEndContainer.textContent.slice(0,oldInfo.rangeEndOffset))>-1){
+                sonNode.childNodes.forEach((grandSonNode) => {
+                    const index =  grandSonNode.textContent.indexOf(oldInfo.rangeEndContainer.textContent.slice(0,oldInfo.rangeEndOffset));
+                    if( index > -1){
+                        newRange.setStart(grandSonNode, oldInfo.rangeEndOffset + index);
+                        newRangePriority[3] = newRange;
+                    }
+                })
+            }
             else{// 父不包含，子包含
                 sonNode.childNodes.forEach((grandSonNode) => {
                     const index =  grandSonNode.textContent.indexOf(oldInfo.rangeEndContainer.textContent);
@@ -88,18 +100,43 @@ export const setSelectionByOldinfo = (editor: HTMLElement, oldInfo:selectionOldI
                     const currentDistance = (currentParentLocation.top - parentRect.top)*parentRect.width + (currentParentLocation.left - parentRect.left);
                     if( index > -1 && currentDistance <= oldDistance && currentDistance> sonDistance){
                         newRange.setStart(grandSonNode, oldInfo.rangeEndOffset + index);
-                        newRangePriority[3] = newRange;
-                        sonDistance = currentDistance;
-                    }else if(currentDistance <= oldDistance && currentDistance> noneDistance){ // 父不包含，子也不包含,比较距离
-                        newRange.setStart(grandSonNode, grandSonNode.textContent.length);
                         newRangePriority[4] = newRange;
-                        noneDistance = currentDistance;
+                        sonDistance = currentDistance;
+                    }else {
+                        // diff假设只修改一处地方
+                        const diffdata = tmp.diff_main( oldInfo.rangeEndContainer.textContent.slice(0,oldInfo.rangeEndOffset), grandSonNode.textContent,true);
+                        //console.log(diffdata);
+                        //比较相同的地方
+                        let currentEqualCharsSum = 0;
+                        let offset = oldInfo.rangeEndOffset;
+                        diffdata.forEach((df,index) => {
+                            if(df[0] === 0){
+                                currentEqualCharsSum += df[1].length;
+                            }else if(df[0] === -1){
+                                offset -= df[1].length;
+                            }else if(df[0] === 1 && index < diffdata.length-1){
+                                offset += df[1].length;
+                            }
+                            //console.log(df, offset);
+                        });
+                        if(currentEqualCharsSum > equalCharsSum){
+                            //console.log(grandSonNode.textContent, offset);
+                            newRange.setStart(grandSonNode, offset);
+                            newRangePriority[5] = newRange;
+                            equalCharsSum = currentEqualCharsSum;
+                        }else if(currentDistance <= oldDistance && currentDistance> noneDistance){ // 父不包含，子也不包含,比较比较距离
+                            newRange.setStart(grandSonNode, grandSonNode.textContent.length);
+                            newRangePriority[6] = newRange;
+                            noneDistance = currentDistance;
+                        }
                     }
                 })
             }
         })
     }
-    for(const NR of newRangePriority){
+    for(const NR_index in newRangePriority){
+        console.log("NR INDEX",NR_index);
+        const NR = newRangePriority[NR_index];
         if(NR instanceof Range){
             NR.collapse(true);
             setSelectionFocus(NR);
