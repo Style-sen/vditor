@@ -86,38 +86,36 @@ const parseSonNode = (grandSonNode: Node,
     if(!grandSonNode.hasChildNodes()){
         let sonNode = grandSonNode.parentElement;
         if(sonNode.textContent === oldInfo.rangeEndContainer.parentElement.textContent){
-            sonNode.childNodes.forEach((grandSonNode)=>{
-                const index =  grandSonNode.textContent.indexOf(oldInfo.rangeEndContainer.textContent);
-                if(grandSonNode.textContent === oldInfo.rangeEndContainer.textContent){
-                    let newRange = document.createRange();
-                    newRange.setStart(grandSonNode,oldInfo.rangeEndOffset);
-                    newRangePriority[0] = newRange;
-                }else if(index>-1){
-                    let newRange = document.createRange();
-                    newRange.setStart(grandSonNode, oldInfo.rangeEndOffset + index);
-                    newRangePriority[1] = newRange;
-                }
-            })
+            const index =  grandSonNode.textContent.indexOf(oldInfo.rangeEndContainer.textContent);
+            if(grandSonNode.textContent === oldInfo.rangeEndContainer.textContent){
+                let newRange = document.createRange();
+                console.log("LEVEL 0",grandSonNode.textContent,grandSonNode.hasChildNodes());
+                newRange.setStart(grandSonNode,oldInfo.rangeEndOffset);
+                newRangePriority[0] = newRange;
+            }else if(index>-1){
+                let newRange = document.createRange();
+                console.log("LEVEL 1",grandSonNode.textContent,grandSonNode.hasChildNodes());
+                newRange.setStart(grandSonNode, oldInfo.rangeEndOffset + index);
+                newRangePriority[1] = newRange;
+            }
         }
         else if(sonNode.textContent.indexOf(oldInfo.rangeEndContainer.parentElement.textContent)>-1){
-            sonNode.childNodes.forEach((grandSonNode) => {
-                const index =  grandSonNode.textContent.indexOf(oldInfo.rangeEndContainer.textContent);
-                if( index > -1){
-                    let newRange = document.createRange();
-                    newRange.setStart(grandSonNode, oldInfo.rangeEndOffset + index);
-                    newRangePriority[2] = newRange;
-                }
-            })
+            const index =  grandSonNode.textContent.indexOf(oldInfo.rangeEndContainer.textContent);
+            if( index > -1){
+                let newRange = document.createRange();
+                console.log("LEVEL 2",grandSonNode.textContent,grandSonNode.hasChildNodes());
+                newRange.setStart(grandSonNode, oldInfo.rangeEndOffset + index);
+                newRangePriority[2] = newRange;
+            }
         }
         else if(sonNode.textContent.indexOf(oldInfo.rangeEndContainer.textContent.slice(0,oldInfo.rangeEndOffset))>-1){
-            sonNode.childNodes.forEach((grandSonNode) => {
-                const index =  grandSonNode.textContent.indexOf(oldInfo.rangeEndContainer.textContent.slice(0,oldInfo.rangeEndOffset));
-                if( index > -1){
-                    let newRange = document.createRange();
-                    newRange.setStart(grandSonNode, oldInfo.rangeEndOffset + index);
-                    newRangePriority[3] = newRange;
-                }
-            })
+            const index =  grandSonNode.textContent.indexOf(oldInfo.rangeEndContainer.textContent.slice(0,oldInfo.rangeEndOffset));
+            if( index > -1){
+                let newRange = document.createRange();
+                console.log("LEVEL 3",grandSonNode.textContent,grandSonNode.hasChildNodes());
+                newRange.setStart(grandSonNode, oldInfo.rangeEndOffset + index);
+                newRangePriority[3] = newRange;
+            }
         }else{
             const index =  grandSonNode.textContent.indexOf(oldInfo.rangeEndContainer.textContent);
             const currentParentLocation = grandSonNode.parentElement.getBoundingClientRect();
@@ -125,6 +123,7 @@ const parseSonNode = (grandSonNode: Node,
             if( index > -1 && currentDistance <= oldDistance && currentDistance> sonDistance){
                 //console.log("4",grandSonNode.textContent, index);
                 let newRange = document.createRange();
+                console.log("LEVEL 4",grandSonNode.textContent,grandSonNode.hasChildNodes());
                 newRange.setStart(grandSonNode, oldInfo.rangeEndOffset + index);
                 newRangePriority[4] = newRange;
                 sonDistance = currentDistance;
@@ -151,11 +150,13 @@ const parseSonNode = (grandSonNode: Node,
                 if(currentEqualCharsSum > equalCharsSum){
                     console.log(grandSonNode.textContent, offset);
                     let newRange = document.createRange();
+                    console.log("LEVEL 5",grandSonNode.textContent,grandSonNode.hasChildNodes());
                     newRange.setStart(grandSonNode, offset);
                     newRangePriority[5] = newRange;
                     equalCharsSum = currentEqualCharsSum;
                 }else if(currentDistance <= oldDistance && currentDistance> noneDistance){ // 父不包含，子也不包含,比较比较距离
                     let newRange = document.createRange();
+                    console.log("LEVEL 6",grandSonNode.textContent,grandSonNode.hasChildNodes());
                     newRange.setStart(grandSonNode, grandSonNode.textContent.length);
                     newRangePriority[6] = newRange;
                     noneDistance = currentDistance;
