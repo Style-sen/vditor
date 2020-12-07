@@ -17,7 +17,7 @@ import {inputEvent} from "./ts/sv/inputEvent";
 import {processAfterRender as processSVAfterRender} from "./ts/sv/process";
 import {Tip} from "./ts/tip";
 import {Toolbar} from "./ts/toolbar/index";
-import {disableToolbar, hidePanel} from "./ts/toolbar/setToolbar";
+import {hidePanel} from "./ts/toolbar/setToolbar";
 import {enableToolbar} from "./ts/toolbar/setToolbar";
 import {initUI} from "./ts/ui/initUI";
 import {setCodeTheme} from "./ts/ui/setCodeTheme";
@@ -185,8 +185,8 @@ class Vditor extends VditorMethod {
     /** 禁用编辑器 */
     public disabled() {
         hidePanel(this.vditor, ["subToolbar", "hint", "popover"]);
-        disableToolbar(this.vditor.toolbar.elements, Constants.EDIT_TOOLBARS.concat(["undo", "redo", "fullscreen",
-            "edit-mode"]));
+        // disableToolbar(this.vditor.toolbar.elements, Constants.EDIT_TOOLBARS.concat(["undo", "redo", "fullscreen",
+        //     "edit-mode"]));
         this.vditor[this.vditor.currentMode].element.setAttribute("contenteditable", "false");
     }
 

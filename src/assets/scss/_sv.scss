@@ -22,7 +22,7 @@
   word-wrap: break-word;
 
   &[contenteditable="false"] {
-    opacity: 0.3;
+    //opacity: 0.3;
     cursor: not-allowed;
   }
 
