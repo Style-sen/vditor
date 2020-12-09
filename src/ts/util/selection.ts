@@ -18,6 +18,95 @@ export const getEditorRange = (element: HTMLElement) => {
     return range;
 };
 
+export const getCursorInMD = (vditor: IVditor, editor: HTMLElement) => {
+    let charNumber = 0;// 从文本头到Cursor的字符个数
+    // 获取cursor处节点
+    const selection = window.getSelection();
+    if(selection.rangeCount === 0){
+        return {};
+    }
+    const range = selection.getRangeAt(0);
+    // 首先获取嵌套级数
+    let depth = 0;
+    let rangeParent = range.startContainer;
+    while(rangeParent.parentElement !== editor){
+        depth += 1;
+        rangeParent = rangeParent.parentElement;
+    }
+    console.log("DEPTH",depth);
+    // 获取在html中的索引
+    let elementIndex = -1;// 获取顶级索引
+    try{
+        editor.childNodes.forEach((value,key)=>{
+            console.log(value,key);
+            if(editor.childNodes.item(key) === rangeParent){
+                elementIndex = key;
+                throw new Error("Quit foreach");
+            }
+        });
+    }
+    catch(e) {
+        console.log(e)
+    }
+    if(elementIndex>-1){// 存在
+        // 第一步：获取之前的字符和
+        let index = 0;
+        while(index < elementIndex){
+            charNumber += editor.childNodes.item(index).textContent.length;
+            console.log("+", editor.childNodes.item(index).textContent);
+            index += 1;
+        }
+        // 第二步:获取本div的字符和
+        console.log(editor.childNodes.item(elementIndex));
+        const {number} = getNumber(editor.childNodes.item(elementIndex), range.startContainer,range.startOffset);
+        charNumber += number;
+    }else{
+        return;
+    }
+
+    console.log("NUMBERS FROM HEAD",charNumber);
+}
+
+interface numberType {
+    number: number,
+    found: boolean
+}
+interface getNumberType {
+    (sourceNode: Node, distNode: Node, offset:number):numberType
+}
+/**
+ * 获取本DIV中的字符个数
+ * @param sourceNode 
+ * @param distNode 
+ * @param offset 
+ */
+const getNumber:getNumberType = (sourceNode: Node, distNode: Node, offset:number)=> {
+    let numberInfo:numberType={
+        number:0,
+        found:false
+    };
+    if(sourceNode.hasChildNodes()){  // 如果有子节点，判断子节点
+        const childNodes:any = sourceNode.childNodes;
+        for(const child of childNodes){
+            const childNumber= getNumber(child, distNode, offset);
+            numberInfo.number += childNumber.number;
+            console.log("+1", child.textContent,childNumber.number);
+            if(childNumber.found){
+                numberInfo.found = true;
+                break;
+            }
+        }
+    }else if(sourceNode === distNode){
+        numberInfo.number += offset;
+        console.log("+2", distNode.textContent, offset);
+        numberInfo.found = true;
+    }else{
+        numberInfo.number += sourceNode.textContent.length;
+        console.log("+3", sourceNode.textContent);
+    }
+    return numberInfo;
+}
+
 interface selectionPosition {
     left: number,
     top: number
