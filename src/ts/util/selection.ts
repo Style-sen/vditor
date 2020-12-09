@@ -18,6 +18,61 @@ export const getEditorRange = (element: HTMLElement) => {
     return range;
 };
 
+export const setCursorByMD = (cursorPositon:number, editor: HTMLElement) => {
+    if(cursorPositon < 0){
+        return;
+    }
+    // 遍历寻找光标所在的NODE
+    // 先找顶层
+    let index = 0; // 就是所在的element
+    let leftNum = cursorPositon;
+    while(leftNum > 0){
+        leftNum -= editor.childNodes.item(index).textContent.length;
+        index += 1;
+    }
+    // 调整index和offset
+    let offset = 0;
+    if(leftNum < 0){
+        index -= 1;
+        offset = leftNum + editor.childNodes.item(index).textContent.length;
+    }
+    // 获取node
+    const nodeInfo = getNode(editor.childNodes.item(index), offset);
+    if(nodeInfo.node !== null){
+        let newRange = document.createRange();
+        newRange.setStart(nodeInfo.node, nodeInfo.offset);
+        newRange.collapse(true);
+        setSelectionFocus(newRange);
+    }
+}
+interface nodeType {
+    node: Node,
+    offset: number
+}
+interface getNodeType {
+    (parentNode: Node, offset: number):nodeType
+}
+const getNode:getNodeType = (parentNode: Node, offset: number)=>{
+    let node = null;
+    if(parentNode.hasChildNodes()){
+        const childNodes:any = parentNode.childNodes;
+        for(const child of childNodes){
+            if(child.textContent.length < offset){
+                offset -= child.textContent.length;
+                continue;
+            }else{
+                const childResult = getNode(child, offset);
+                node = childResult.node;
+                offset = childResult.offset;
+                break;
+            }
+        }
+    }else{
+        node = parentNode;
+    }
+    return {node, offset}
+}
+
 export const getCursorInMD = (vditor: IVditor, editor: HTMLElement) => {
     let charNumber = 0;// 从文本头到Cursor的字符个数
     // 获取cursor处节点
@@ -29,9 +84,11 @@ export const getCursorInMD = (vditor: IVditor, editor: HTMLElement) => {
     // 首先获取嵌套级数
     let depth = 0;
     let rangeParent = range.startContainer;
-    while(rangeParent.parentElement !== editor){
-        depth += 1;
-        rangeParent = rangeParent.parentElement;
+    if(rangeParent !== editor){
+        while(rangeParent.parentElement !== editor){
+            depth += 1;
+            rangeParent = rangeParent.parentElement;
+        }
     }
     console.log("DEPTH",depth);
     // 获取在html中的索引
@@ -61,10 +118,11 @@ export const getCursorInMD = (vditor: IVditor, editor: HTMLElement) => {
         const {number} = getNumber(editor.childNodes.item(elementIndex), range.startContainer,range.startOffset);
         charNumber += number;
     }else{
-        return;
+        return {};
     }
 
     console.log("NUMBERS FROM HEAD",charNumber);
+    return charNumber;
 }
 
 interface numberType {
